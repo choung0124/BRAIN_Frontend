@@ -1,0 +1,17 @@
+.centered {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.navbarDefault {
+  background: transparent;
+  color: #344767;
+}
+
+.navbarRed {
+  background-color: red;
+  color: #fff;
+  /* Adjust text color as needed */
+}

@@ -1,0 +1,26 @@
+.graph-container {
+    width: 100%;  /* take full width of parent */
+    height: 70vh; /* adjust this as needed */
+    position: relative;
+}
+
+.clicked-nodes-container {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 2;  /* ensure it overlays the SVG */
+}
+
+.modal-button-container {
+    position: absolute;
+    top: 10px;
+    left: 50%;  /* set left to 50% to move the element to the middle horizontally */
+    transform: translateX(-50%);  /* shift the element back to the left by half its width to center it */
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 2;  /* ensure it overlays the SVG */
+}
