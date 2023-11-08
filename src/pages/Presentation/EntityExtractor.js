@@ -261,7 +261,7 @@ function EntityExtractor({ initialQuestion }) {
 
   const checkAnswerExists = async () => {
     try {
-      const response = await axios.post("http://http://192.168.100.41:8000/check_previous/", {
+      const response = await axios.post("http://192.168.100.41:8000/check_previous/", {
         question,
       });
       if (response.data.status === "success") {
@@ -269,17 +269,6 @@ function EntityExtractor({ initialQuestion }) {
       } else {
         setAnswerExists(false);
       }
-    } catch (error) {
-      console.error("Error notifying backend:", error);
-    }
-  };
-
-  const notifyBackendAllCombinationsProcessed = async () => {
-    try {
-      const response = await axios.post("http://192.168.100.41:8000/complete/", {
-        question: question,
-      });
-      console.log(response.data.status);
     } catch (error) {
       console.error("Error notifying backend:", error);
     }
@@ -395,13 +384,13 @@ function EntityExtractor({ initialQuestion }) {
         try {
           const response = await axios.post("http://192.168.100.41:8000/tasks/status/", {
             graphqa_id: batchGraphqaID, // Use graphqaID to check status
+            question: question,
           });
           const { status, completed } = response.data;
           if (status === "All tasks are finished") {
             setIsLoading(false);
             setIsGraphQARunning(false);
             await fetchFinalAnswer();
-            await notifyBackendAllCombinationsProcessed();
           } else {
             // If not all tasks are complete, log completed tasks and retry after a delay
             console.log("Completed tasks:", completed);
