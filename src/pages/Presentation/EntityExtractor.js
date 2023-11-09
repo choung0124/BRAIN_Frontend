@@ -283,6 +283,7 @@ function EntityExtractor({ initialQuestion }) {
   const runGraphQA = async () => {
     setIsLoading(true);
     setIsGraphQARunning(true);
+    setShowGraph(false);
     await checkAnswerExists();
     if (answerExists) {
       await fetchFinalAnswer();

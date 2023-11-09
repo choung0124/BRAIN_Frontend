@@ -34,6 +34,8 @@ import InputAdornment from "@mui/material/InputAdornment";
 import SearchIcon from "@mui/icons-material/Search";
 import NodeAutosuggest from "../GraphVisualization/AutoSuggest";
 
+import PreviousAnswers from "../PreviousAnswers";
+
 function DefaultNavbar({
   searchValue = [],
   handleSearchActive = [],
@@ -62,6 +64,11 @@ function DefaultNavbar({
   const [mobileNavbar, setMobileNavbar] = useState(false);
   const [mobileView, setMobileView] = useState(false);
   const [inputValue, setInputValue] = useState("");
+  const [modalOpen, setModalOpen] = useState(false);
+  const toggleModal = () => {
+    console.log("toggleModal called");
+    setModalOpen(!modalOpen);
+  };
 
   const openMobileNavbar = () => setMobileNavbar(!mobileNavbar);
 
@@ -150,6 +157,7 @@ function DefaultNavbar({
                       py={1}
                       px={0.5}
                       mt={index !== 0 ? 2 : 0}
+                      onClick={() => toggleModal()}
                     >
                       {col.name}
                     </MKTypography>
@@ -179,6 +187,7 @@ function DefaultNavbar({
                             color: dark.main,
                           },
                         })}
+                        onClick={() => toggleModal()}
                       >
                         {item.name}
                       </MKTypography>
@@ -247,6 +256,7 @@ function DefaultNavbar({
                 },
               },
             })}
+            onClick={() => toggleModal()}
             onMouseEnter={({ currentTarget }) => {
               if (item.dropdown) {
                 setNestedDropdown(currentTarget);
@@ -269,6 +279,7 @@ function DefaultNavbar({
                   color="text"
                   fontWeight="regular"
                   sx={{ transition: "all 300ms linear" }}
+                  onClick={() => toggleModal()}
                 >
                   {item.description}
                 </MKTypography>
@@ -391,6 +402,7 @@ function DefaultNavbar({
                         },
                       },
                     })}
+                    onClick={() => toggleModal()}
                   >
                     {item.description ? (
                       <MKBox>
@@ -401,6 +413,7 @@ function DefaultNavbar({
                           color="text"
                           fontWeight="regular"
                           sx={{ transition: "all 300ms linear" }}
+                          onClick={() => toggleModal()}
                         >
                           {item.description}
                         </MKTypography>
@@ -485,30 +498,42 @@ function DefaultNavbar({
           color: navbarColor === "red" ? "#fff" : "#344767",
         }}
       >
-        <MKBox display="flex" justifyContent="flex-end" alignItems="center">
+        <MKBox display="flex" flexDirection="row" alignItems="center" px={2} py={1}>
           {navbarType === "search" && (
-            <MKBox component="section" py={1} flexGrow={1} ml={2}>
-              <MKInput
-                variant="standard"
-                placeholder="Search"
-                style={{ width: "97%" }}
-                value={inputValue} // <--- This ensures controlled component
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyPress={(event) => {
-                  if (event.key === "Enter") {
-                    setSearchValue(inputValue);
-                    handleSearchActive();
-                    window.scrollTo(0, window.innerHeight);
-                  }
-                }}
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon fontSize="small" />
-                    </InputAdornment>
-                  ),
-                }}
-              />
+            <MKBox
+              display="flex"
+              style={{ minWidth: "100%" }}
+              flexWrap="none"
+              justifyContent="flex-end"
+            >
+              <MKBox flexGrow={1}>
+                <MKInput
+                  variant="standard"
+                  placeholder="Search"
+                  value={inputValue} // <--- This ensures controlled component
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyPress={(event) => {
+                    if (event.key === "Enter") {
+                      setSearchValue(inputValue);
+                      handleSearchActive();
+                      window.scrollTo(0, window.innerHeight);
+                    }
+                  }}
+                  fullWidth
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon fontSize="small" />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </MKBox>
+              <MKBox flexShrink={0}>
+                <MKButton variant="text" color="info" size="small" onClick={() => toggleModal()}>
+                  Previous Answers
+                </MKButton>
+              </MKBox>
             </MKBox>
           )}
           {navbarType === "popup" && (
@@ -544,7 +569,6 @@ function DefaultNavbar({
               (action.type === "internal" ? (
                 <MKButton
                   component={Link}
-                  to={action.route}
                   variant={
                     action.color === "white" || action.color === "default"
                       ? "contained"
@@ -552,15 +576,13 @@ function DefaultNavbar({
                   }
                   color={action.color ? action.color : "info"}
                   size="small"
+                  onClick={() => toggleModal()}
                 >
                   {action.label}
                 </MKButton>
               ) : (
                 <MKButton
                   component="a"
-                  href={action.route}
-                  target="_blank"
-                  rel="noreferrer"
                   variant={
                     action.color === "white" || action.color === "default"
                       ? "contained"
@@ -568,10 +590,12 @@ function DefaultNavbar({
                   }
                   color={action.color ? action.color : "info"}
                   size="small"
+                  onClick={() => toggleModal()}
                 >
                   {action.label}
                 </MKButton>
               ))}
+            {modalOpen && <PreviousAnswers toggleModal={toggleModal} show={modalOpen} />}
           </MKBox>
           <MKBox
             display={{ xs: "inline-block", lg: "none" }}
