@@ -48,7 +48,7 @@ function PreviousAnswerDropdown({ question, originalEntities }) {
   const [graphRels, setGraphRels] = useState([]);
   const dropdownButtonRef = React.useRef(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [selectedAnswerName, setSelectedAnswerName] = useState("All Sources");
+  const [selectedAnswerName, setSelectedAnswerName] = useState(null); // Add this line
 
   const openDropdown = () => setDropdownOpen(true);
   const closeDropdown = () => setDropdownOpen(false);
@@ -104,38 +104,53 @@ function PreviousAnswerDropdown({ question, originalEntities }) {
         shadow="xl"
         mx="auto"
       >
-        <MKBox display="flex" alignItems="center" justifyContent="center" p={2} py={2}>
-          <MKButton variant="gradient" color="info" onClick={openDropdown} ref={dropdownButtonRef}>
-            {selectedAnswerName} <Icon sx={dropdownIconStyles}>expand_more</Icon>
-          </MKButton>
-          <MenuComponent
-            dropdownOpen={dropdownOpen}
-            anchorEl={dropdownButtonRef.current}
-            onClose={closeDropdown}
-            answerNames={answerNames}
-            handleAnswerNameChange={handleAnswerNameChange}
-          />
-        </MKBox>
-        <Divider sx={{ my: 0 }} />
-        {detailedAnswer && (
-          <MKBox display="flex" p={5} py={4}>
+        {answerNames.length > 0 ? (
+          <>
+            <MKBox display="flex" alignItems="center" justifyContent="center" p={2} py={2}>
+              <MKButton
+                variant="gradient"
+                color="info"
+                onClick={openDropdown}
+                ref={dropdownButtonRef}
+              >
+                {selectedAnswerName} <Icon sx={dropdownIconStyles}>expand_more</Icon>
+              </MKButton>
+              <MenuComponent
+                dropdownOpen={dropdownOpen}
+                anchorEl={dropdownButtonRef.current}
+                onClose={closeDropdown}
+                answerNames={answerNames}
+                handleAnswerNameChange={handleAnswerNameChange}
+              />
+            </MKBox>
+            <Divider sx={{ my: 0 }} />
+            {detailedAnswer && (
+              <MKBox display="flex" p={5} py={4}>
+                <Typography variant="body2" textAlign="center">
+                  {detailedAnswer}
+                </Typography>
+              </MKBox>
+            )}
+            <Divider sx={{ my: 0 }} />
+            {graphRels.length > 0 && (
+              <Grid item xs={12}>
+                <div style={{ position: "relative" }}>
+                  {" "}
+                  <GraphContainer
+                    relations={graphRels}
+                    originalEntities={originalEntities}
+                    style={{ position: "relative", zIndex: 1 }} // Set SVG position and z-index
+                  />
+                </div>
+              </Grid>
+            )}
+          </>
+        ) : (
+          <MKBox px={6} py={5}>
             <Typography variant="body2" textAlign="center">
-              {detailedAnswer}
+              No Supporting Evidence
             </Typography>
           </MKBox>
-        )}
-        <Divider sx={{ my: 0 }} />
-        {graphRels.length > 0 && (
-          <Grid item xs={12}>
-            <div style={{ position: "relative" }}>
-              {" "}
-              <GraphContainer
-                relations={graphRels}
-                originalEntities={originalEntities}
-                style={{ position: "relative", zIndex: 1 }} // Set SVG position and z-index
-              />
-            </div>
-          </Grid>
         )}
       </MKBox>
     </MKBox>

@@ -37,7 +37,7 @@ const QuestionAutoComplete = ({ questions, handleQuestionChange }) => {
       renderInput={(params) => (
         <MKInput
           {...params}
-          variant="standard"
+          variant="outlined"
           placeholder="Search for a question..."
           // ... any other MKInput props you need
         />
@@ -54,7 +54,7 @@ const PreviousAnswers = ({ toggleModal, show }) => {
   const [previousQuestions, setPreviousQuestions] = useState([]);
   const [question, setQuestion] = useState("");
   const [finalAnswer, setFinalAnswer] = useState([]);
-  const [isAnswerLoading, setAnswerLoading] = useState(false);
+  const [answerLoaded, setAnswerLoaded] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
 
   useEffect(() => {
@@ -73,14 +73,13 @@ const PreviousAnswers = ({ toggleModal, show }) => {
   };
 
   const getFinalAnswer = async (question) => {
-    setAnswerLoading(true);
     const response = await axios.post("http://192.168.100.41:8000/fetch_final_answer/", {
       question,
     });
     const { answer } = response.data;
     console.log("Final answer:", answer);
+    setAnswerLoaded(true);
     setFinalAnswer(answer);
-    setAnswerLoading(false);
   };
 
   const handleQuestionChange = async (name) => {
@@ -119,9 +118,9 @@ const PreviousAnswers = ({ toggleModal, show }) => {
                   style={{ minWidth: "97%" }}
                   flexWrap="none"
                   justifyContent="flex-end"
-                  px={5}
-                  paddingTop={4}
-                  paddingBottom={2}
+                  px={6}
+                  paddingTop={5}
+                  paddingBottom={answerLoaded ? 2 : 5}
                 >
                   <QuestionAutoComplete
                     questions={previousQuestions}
@@ -129,31 +128,37 @@ const PreviousAnswers = ({ toggleModal, show }) => {
                   />
                   <Divider sx={{ my: 0 }} />
                 </MKBox>
-                <Grid container item justifyContent="center" xs={12} lg={4} mx="auto">
-                  <AppBar position="static">
-                    <Tabs value={activeTab} onChange={handleTabChange}>
-                      <Tab label="Final Answer" />
-                      <Tab label="Sources" />
-                    </Tabs>
-                  </AppBar>
-                </Grid>
-
-                {!isAnswerLoading && activeTab === 0 && finalAnswer && (
-                  <MKBox display="grid" p={7} py={4}>
-                    <Typography variant="h4" gutterBottom align="center">
-                      Final Answer
-                    </Typography>
-                    <Typography variant="body" textAlign="center">
-                      {finalAnswer}
-                    </Typography>
-                  </MKBox>
-                )}
-                {!isAnswerLoading && activeTab === 1 && (
+                {answerLoaded ? (
                   <MKBox>
-                    <Grid container spacing={0} justifyContent="center">
-                      <PreviousAnswerDropdown question={question} originalEntities={""} />
+                    <Grid container item justifyContent="center" xs={12} lg={4} mx="auto">
+                      <AppBar position="static">
+                        <Tabs value={activeTab} onChange={handleTabChange}>
+                          <Tab label="Final Answer" />
+                          <Tab label="Sources" />
+                        </Tabs>
+                      </AppBar>
                     </Grid>
+
+                    {activeTab === 0 && finalAnswer && (
+                      <MKBox display="grid" p={7} py={4}>
+                        <Typography variant="h4" gutterBottom align="center">
+                          Final Answer
+                        </Typography>
+                        <Typography variant="body" textAlign="center">
+                          {finalAnswer}
+                        </Typography>
+                      </MKBox>
+                    )}
+                    {activeTab === 1 && (
+                      <MKBox>
+                        <Grid container spacing={0} justifyContent="center">
+                          <PreviousAnswerDropdown question={question} originalEntities={""} />
+                        </Grid>
+                      </MKBox>
+                    )}
                   </MKBox>
+                ) : (
+                  <></>
                 )}
               </MKBox>
             </Slide>

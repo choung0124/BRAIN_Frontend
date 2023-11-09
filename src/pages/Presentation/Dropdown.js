@@ -69,6 +69,7 @@ function Dropdown({ question, originalEntities }) {
     try {
       const response = await axios.post("http://192.168.100.41:8000/load_answers/", { question });
       setAnswerNames(response.data.answer_names);
+      console.log(response.data.answer_names);
     } catch (error) {
       console.error("Error loading answer names:", error);
     }
@@ -105,11 +106,17 @@ function Dropdown({ question, originalEntities }) {
   return (
     <MKBox component="section" py={6}>
       <Container>
-        <Grid container item spacing={3} justifyContent="center" xs={12}>
-          <MKButton variant="gradient" color="info" onClick={toggleModal}>
-            Sources
-          </MKButton>
-        </Grid>
+        {answerNames && answerNames.length > 0 ? (
+          <Grid container item spacing={3} justifyContent="center" xs={12}>
+            <MKButton variant="gradient" color="info" onClick={toggleModal}>
+              Sources
+            </MKButton>
+          </Grid>
+        ) : (
+          <Typography variant="body2" textAlign="center">
+            No Supporting Sources
+          </Typography>
+        )}
         <Modal open={show} onClose={toggleModal} sx={{ display: "grid", placeItems: "center" }}>
           <Slide direction="down" in={show}>
             <MKBox
