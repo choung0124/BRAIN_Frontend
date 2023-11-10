@@ -424,7 +424,7 @@ function EntityExtractor({ initialQuestion }) {
           <Container>
             <Grid container item xs={12} lg={4} py={1} justifyContent="center" mx="auto">
               <MKTypography variant="h4" color="cyan" mr={2}>
-                Extracting Entities
+                Processing Question
               </MKTypography>
               <CircularProgress />
             </Grid>

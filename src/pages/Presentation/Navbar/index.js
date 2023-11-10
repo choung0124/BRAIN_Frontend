@@ -539,9 +539,9 @@ function DefaultNavbar({
           {navbarType === "popup" && (
             <MKBox
               component="section"
-              py={1}
+              py={0}
               flexGrow={1}
-              ml={2}
+              ml={1}
               display="flex"
               justifyContent="space-between"
             >

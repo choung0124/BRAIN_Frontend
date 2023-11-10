@@ -287,21 +287,31 @@ const InputModal = React.forwardRef(
                         color="error"
                         sx={{ marginLeft: "0.5rem", marginBottom: "0.5rem" }}
                         onClick={() => {
-                          //remove constituent from constituentsDict
-                          const newConstituents = constituents.filter(
-                            (item) => item !== constituent
+                          // First, update the constituentsDict.
+                          setConstituentsDict((prevDict) => {
+                            // Create a new dictionary without the constituent.
+                            const newDict = { ...prevDict };
+                            newDict[entity] = prevDict[entity].filter(
+                              (item) => item !== constituent
+                            );
+
+                            // If the updated array is empty, delete the key from the dictionary.
+                            if (newDict[entity].length === 0) {
+                              delete newDict[entity];
+                            }
+                            return newDict;
+                          });
+
+                          // Then, update the pathsList.
+                          setPathsList((prevPaths) =>
+                            prevPaths.filter((path) => path.nodes[1] !== constituent)
                           );
-                          setConstituentsDict((prev) => ({
-                            ...prev,
-                            [entity]: newConstituents,
-                          }));
-                          //remove constituent from pathsList
-                          const newPathsList = pathsList.filter(
-                            (item) => item.nodes[1] !== constituent
-                          );
-                          setPathsList(newPathsList);
+
+                          // After that, handle the graph update.
                           updateGraph([constituent], clickedNode, true);
-                          updateEntities(constituent, updatedEntityType, true);
+
+                          // Finally, update the entities.
+                          updateEntities(constituent, null, true);
                         }}
                       >
                         {constituent} {""} <RemoveCircleOutlineIcon />
