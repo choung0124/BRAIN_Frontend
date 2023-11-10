@@ -113,7 +113,7 @@ function PreviousAnswerDropdown({ question, originalEntities }) {
                 onClick={openDropdown}
                 ref={dropdownButtonRef}
               >
-                {selectedAnswerName} <Icon sx={dropdownIconStyles}>expand_more</Icon>
+                {selectedAnswerName || "Sources"} <Icon sx={dropdownIconStyles}>expand_more</Icon>
               </MKButton>
               <MenuComponent
                 dropdownOpen={dropdownOpen}
