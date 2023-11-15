@@ -127,7 +127,7 @@ const PreviousAnswers = ({ toggleModal, show }) => {
 
   useEffect(() => {
     const getQuestions = async () => {
-      const response = await axios.post("http://192.168.100.41:8000/previous_answers/", {});
+      const response = await axios.post("http://192.168.100.116:8000/previous_answers/", {});
       console.log("Response:", response);
       setPreviousQuestions(response.data.questions);
       if (response.data.running_questions.length === 0) {
@@ -140,7 +140,7 @@ const PreviousAnswers = ({ toggleModal, show }) => {
   }, []);
 
   const getFinalAnswer = async (question) => {
-    const response = await axios.post("http://192.168.100.41:8000/fetch_final_answer/", {
+    const response = await axios.post("http://192.168.100.116:8000/fetch_final_answer/", {
       question,
     });
     const { answer } = response.data;

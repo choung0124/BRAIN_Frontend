@@ -254,11 +254,12 @@ const InputModal = React.forwardRef(
                       .filter((item) => item); // remove any empty strings
                     if (newChildren.length > 0) {
                       // ensure there's at least one non-empty string
-                      updateGraph(newChildren, clickedNode); // Update the graph with the new children and the parent node name
-                      setInputChildren(""); // Clear the input field
-                      setEntityConstituents((prev) => [...prev, ...newChildren]);
+                      console.log("new children", newChildren[0]);
+                      console.log(updatedEntityType);
                       setUpdatedEntityType(updatedEntityType);
                       updateEntities(newChildren[0], updatedEntityType);
+                      updateGraph(newChildren, clickedNode); // Update the graph with the new children and the parent node name
+                      setInputChildren(""); // Clear the input field
                       setUpdatedEntityType(null);
                     }
                   }}

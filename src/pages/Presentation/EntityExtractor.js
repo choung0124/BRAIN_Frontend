@@ -127,7 +127,7 @@ function EntityExtractor({ initialQuestion }) {
   const handleSubmit = async () => {
     setIsExtractingEntities(true);
     try {
-      const response = await axios.post("http://192.168.100.41:8000/question/", {
+      const response = await axios.post("http://192.168.100.116:8000/question/", {
         question: initialQuestion,
       });
       setEntities(response.data.entities_list);
@@ -153,6 +153,8 @@ function EntityExtractor({ initialQuestion }) {
   };
 
   const updateEntities = (newEntity, entityType = null, remove) => {
+    console.log("previous entities:", entities);
+    console.log("New entity:", newEntity, entityType);
     setEntities((prevEntities) => {
       if (remove) {
         return prevEntities.filter(([entityName]) => entityName !== newEntity);
@@ -252,7 +254,7 @@ function EntityExtractor({ initialQuestion }) {
 
   const fetchFinalAnswer = async () => {
     try {
-      const response = await axios.post("http://192.168.100.41:8000/answer/", { question });
+      const response = await axios.post("http://192.168.100.116:8000/answer/", { question });
       setFinalAnswer(response.data.final_answer);
     } catch (error) {
       console.error("Error fetching final answer:", error);
@@ -261,7 +263,7 @@ function EntityExtractor({ initialQuestion }) {
 
   const checkAnswerExists = async () => {
     try {
-      const response = await axios.post("http://192.168.100.41:8000/check_previous/", {
+      const response = await axios.post("http://192.168.100.116:8000/check_previous/", {
         question,
       });
       if (response.data.status === "success") {
@@ -347,7 +349,7 @@ function EntityExtractor({ initialQuestion }) {
         return { combination, id: combinationIDs[index] };
       });
 
-      const response = await axios.post("http://192.168.100.41:8000/initial_status/", {
+      const response = await axios.post("http://192.168.100.116:8000/initial_status/", {
         graphqa_id: batchGraphqaID,
         combination_ids: combinationIDs,
       });
@@ -361,7 +363,7 @@ function EntityExtractor({ initialQuestion }) {
         console.log("Sending combination to backend:", flattenedCombination);
 
         try {
-          const response = await axios.post("http://192.168.100.41:8000/graphqa/", {
+          const response = await axios.post("http://192.168.100.116:8000/graphqa/", {
             question: question,
             entities_list: flattenedCombination,
             constituents_dict: filteredConstituentsDict,
@@ -383,7 +385,7 @@ function EntityExtractor({ initialQuestion }) {
         // You no longer need combinationKeys or promises for individual tasks
         // Simply check the status of the tasks using the graphqaID
         try {
-          const response = await axios.post("http://192.168.100.41:8000/tasks/status/", {
+          const response = await axios.post("http://192.168.100.116:8000/tasks/status/", {
             graphqa_id: batchGraphqaID, // Use graphqaID to check status
             question: question,
           });

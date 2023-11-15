@@ -55,7 +55,7 @@ function PreviousAnswerDropdown({ question, originalEntities }) {
 
   const loadAnswerNames = async () => {
     try {
-      const response = await axios.post("http://192.168.100.41:8000/load_answers/", { question });
+      const response = await axios.post("http://192.168.100.116:8000/load_answers/", { question });
       setAnswerNames(response.data.answer_names);
     } catch (error) {
       console.error("Error loading answer names:", error);
@@ -64,7 +64,7 @@ function PreviousAnswerDropdown({ question, originalEntities }) {
 
   const handleAnswerNameChange = async (name) => {
     try {
-      const response = await axios.post("http://192.168.100.41:8000/retrieve_answer/", {
+      const response = await axios.post("http://192.168.100.116:8000/retrieve_answer/", {
         answer_name: name,
       });
       setDetailedAnswer(response.data.answer);
