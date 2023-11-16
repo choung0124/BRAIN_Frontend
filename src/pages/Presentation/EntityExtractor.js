@@ -13,6 +13,8 @@ import ForceDirectedTree from "./InputVisualization/Tree";
 import InputModal from "./InputVisualization/InputModal";
 import "./EntityExtractor.css";
 
+import { firebaseAuth } from "firebaseConfig";
+
 function* combinations(arr, k) {
   const len = arr.length;
   if (k > len) return;
@@ -83,6 +85,7 @@ function EntityExtractor({ initialQuestion }) {
   const [currentEntityType, setCurrentEntityType] = useState(null);
   const [showGraph, setShowGraph] = useState(false);
   const [answerExists, setAnswerExists] = useState(false);
+  const uid = firebaseAuth.currentUser.uid;
 
   useEffect(() => {
     if (initialQuestion !== "" && entities.length === 0 && !isExtractingEntities) {
@@ -127,8 +130,9 @@ function EntityExtractor({ initialQuestion }) {
   const handleSubmit = async () => {
     setIsExtractingEntities(true);
     try {
-      const response = await axios.post("http://192.168.100.116:8000/question/", {
+      const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/question/`, {
         question: initialQuestion,
+        uid,
       });
       setEntities(response.data.entities_list);
     } catch (error) {
@@ -254,7 +258,10 @@ function EntityExtractor({ initialQuestion }) {
 
   const fetchFinalAnswer = async () => {
     try {
-      const response = await axios.post("http://192.168.100.116:8000/answer/", { question });
+      const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/answer/`, {
+        question,
+        uid,
+      });
       setFinalAnswer(response.data.final_answer);
     } catch (error) {
       console.error("Error fetching final answer:", error);
@@ -263,8 +270,9 @@ function EntityExtractor({ initialQuestion }) {
 
   const checkAnswerExists = async () => {
     try {
-      const response = await axios.post("http://192.168.100.116:8000/check_previous/", {
+      const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/check_previous/`, {
         question,
+        uid,
       });
       if (response.data.status === "success") {
         setAnswerExists(true);
@@ -349,9 +357,10 @@ function EntityExtractor({ initialQuestion }) {
         return { combination, id: combinationIDs[index] };
       });
 
-      const response = await axios.post("http://192.168.100.116:8000/initial_status/", {
+      const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/initial_status/`, {
         graphqa_id: batchGraphqaID,
         combination_ids: combinationIDs,
+        uid,
       });
 
       console.log(response);
@@ -363,13 +372,14 @@ function EntityExtractor({ initialQuestion }) {
         console.log("Sending combination to backend:", flattenedCombination);
 
         try {
-          const response = await axios.post("http://192.168.100.116:8000/graphqa/", {
+          const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/graphqa/`, {
             question: question,
             entities_list: flattenedCombination,
             constituents_dict: filteredConstituentsDict,
             constituents_paths: filteredConstituentsPaths,
             graphqa_id: batchGraphqaID, // Send the generated graphqa_id to the backend
             combination_id: id, // Send the generated combination_id to the backend
+            uid,
           });
 
           const { status } = response.data;
@@ -385,9 +395,10 @@ function EntityExtractor({ initialQuestion }) {
         // You no longer need combinationKeys or promises for individual tasks
         // Simply check the status of the tasks using the graphqaID
         try {
-          const response = await axios.post("http://192.168.100.116:8000/tasks/status/", {
+          const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/tasks/status/`, {
             graphqa_id: batchGraphqaID, // Use graphqaID to check status
             question: question,
+            uid,
           });
           const { status, completed } = response.data;
           if (status === "All tasks are finished") {

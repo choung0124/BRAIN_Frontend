@@ -18,6 +18,8 @@ import {
 
 import PropTypes from "prop-types";
 
+import { firebaseAuth } from "firebaseConfig";
+
 const QuestionAutoComplete = ({
   questions,
   handleQuestionChange,
@@ -125,9 +127,13 @@ const PreviousAnswers = ({ toggleModal, show }) => {
 
   const getCurrentQuestions = () => (runningMode ? runningQuestions : previousQuestions);
 
+  const uid = firebaseAuth.currentUser.uid;
+
   useEffect(() => {
     const getQuestions = async () => {
-      const response = await axios.post("http://192.168.100.116:8000/previous_answers/", {});
+      const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/previous_answers/`, {
+        uid,
+      });
       console.log("Response:", response);
       setPreviousQuestions(response.data.questions);
       if (response.data.running_questions.length === 0) {
@@ -140,8 +146,9 @@ const PreviousAnswers = ({ toggleModal, show }) => {
   }, []);
 
   const getFinalAnswer = async (question) => {
-    const response = await axios.post("http://192.168.100.116:8000/fetch_final_answer/", {
+    const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/fetch_final_answer/`, {
       question,
+      uid,
     });
     const { answer } = response.data;
     console.log("Final answer:", answer);

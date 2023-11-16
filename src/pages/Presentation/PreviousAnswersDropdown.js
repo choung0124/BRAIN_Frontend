@@ -8,6 +8,8 @@ import MKButton from "components/MKButton";
 
 import PropTypes from "prop-types";
 
+import { firebaseAuth } from "firebaseConfig";
+
 function MenuComponent({ dropdownOpen, anchorEl, onClose, answerNames, handleAnswerNameChange }) {
   return (
     <Menu
@@ -53,9 +55,14 @@ function PreviousAnswerDropdown({ question, originalEntities }) {
   const openDropdown = () => setDropdownOpen(true);
   const closeDropdown = () => setDropdownOpen(false);
 
+  const uid = firebaseAuth.currentUser.uid;
+
   const loadAnswerNames = async () => {
     try {
-      const response = await axios.post("http://192.168.100.116:8000/load_answers/", { question });
+      const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/load_answers/`, {
+        question,
+        uid,
+      });
       setAnswerNames(response.data.answer_names);
     } catch (error) {
       console.error("Error loading answer names:", error);
@@ -64,8 +71,9 @@ function PreviousAnswerDropdown({ question, originalEntities }) {
 
   const handleAnswerNameChange = async (name) => {
     try {
-      const response = await axios.post("http://192.168.100.116:8000/retrieve_answer/", {
+      const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/retrieve_answer/`, {
         answer_name: name,
+        uid,
       });
       setDetailedAnswer(response.data.answer);
       setGraphRels(response.data.graph_rels);

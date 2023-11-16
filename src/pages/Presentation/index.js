@@ -18,13 +18,14 @@ import React, { useState, useEffect } from "react"; // Import useState
 import Container from "@mui/material/Container";
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
 
 // Material Kit 2 React components
 import MKBox from "components/MKBox";
 import MKTypography from "components/MKTypography";
 
-// Material Kit 2 React examples
-import DefaultNavbar from "./Navbar/";
+import SearchBar from "./SearchBar";
 
 // Routes
 import routes from "routes";
@@ -34,14 +35,32 @@ import bgImage from "assets/images/Brain_img.png";
 
 import EntityExtractor from "./EntityExtractor";
 
+import { firebaseAuth } from "firebaseConfig";
+import { signOut } from "firebase/auth";
+
 function Presentation() {
   const [searchValue, setSearchValue] = useState(""); // This state is lifted up to Presentation
   const [isSearchActive, setSearchActive] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const user = firebaseAuth.currentUser;
 
   // isSearchActive starts as false
   function handleSearchActive() {
     setSearchActive(true);
   }
+
+  const handleMenu = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleLogout = () => {
+    signOut(firebaseAuth);
+    handleClose();
+  };
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -49,8 +68,45 @@ function Presentation() {
 
   return (
     <>
+      <MKBox
+        variant="gradient"
+        bgColor="dark"
+        shadow="sm"
+        py={0.25}
+        display="flex"
+        justifyContent="flex-end"
+      >
+        <MKTypography
+          onClick={handleMenu}
+          color="white"
+          sx={{
+            fontSize: "12pt",
+            cursor: "pointer",
+            marginRight: "10px", // 우측 여백 조정
+          }}
+        >
+          {user.email}
+        </MKTypography>
+        <Menu
+          id="menu-appbar"
+          anchorEl={anchorEl}
+          anchorOrigin={{
+            vertical: "bottom", // 메뉴가 글자 아래에 위치하도록 변경
+            horizontal: "right",
+          }}
+          transformOrigin={{
+            vertical: "top",
+            horizontal: "right",
+          }}
+          open={Boolean(anchorEl)}
+          onClose={handleClose}
+        >
+          <MenuItem onClick={handleLogout}>Logout</MenuItem>
+        </Menu>
+      </MKBox>
+
       {isSearchActive ? (
-        <DefaultNavbar
+        <SearchBar
           brand="ARIS"
           routes={routes}
           sticky
@@ -102,7 +158,7 @@ function Presentation() {
               // do nothing
               <></>
             ) : (
-              <DefaultNavbar
+              <SearchBar
                 brand="ARIS"
                 routes={routes}
                 sticky

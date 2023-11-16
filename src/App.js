@@ -13,7 +13,7 @@ Coded by www.creative-tim.com
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 // react-router components
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
@@ -25,12 +25,25 @@ import CssBaseline from "@mui/material/CssBaseline";
 // Material Kit 2 React themes
 import theme from "assets/theme";
 import Presentation from "layouts/pages/presentation";
+import SignIn from "layouts/pages/authentication/sign-in";
 
 // Material Kit 2 React routes
 import routes from "routes";
 
+import { firebaseAuth } from "firebaseConfig";
+import { onAuthStateChanged } from "firebase/auth";
+
 export default function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const { pathname } = useLocation();
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(firebaseAuth, (user) => {
+      setIsAuthenticated(!!user);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   // Setting page scroll to 0 when changing the route
   useEffect(() => {
@@ -55,9 +68,18 @@ export default function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Routes>
-        {getRoutes(routes)}
-        <Route path="/presentation" element={<Presentation />} />
-        <Route path="*" element={<Navigate to="/presentation" />} />
+        {isAuthenticated ? (
+          <>
+            {getRoutes(routes)}
+            <Route path="/presentation" element={<Presentation />} />
+            <Route path="*" element={<Navigate to="/presentation" />} />
+          </>
+        ) : (
+          <>
+            <Route path="/signin" element={<SignIn />} />
+            <Route path="*" element={<Navigate to="/signin" />} />
+          </>
+        )}
       </Routes>
     </ThemeProvider>
   );

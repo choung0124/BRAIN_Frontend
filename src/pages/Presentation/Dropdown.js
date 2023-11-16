@@ -13,6 +13,8 @@ import {
   Divider,
 } from "@mui/material";
 
+import { firebaseAuth } from "firebaseConfig";
+
 import MKBox from "components/MKBox";
 import MKButton from "components/MKButton";
 
@@ -65,9 +67,14 @@ function Dropdown({ question, originalEntities }) {
   const openDropdown = () => setDropdownOpen(true);
   const closeDropdown = () => setDropdownOpen(false);
 
+  const uid = firebaseAuth.currentUser.uid;
+
   const loadAnswerNames = async () => {
     try {
-      const response = await axios.post("http://192.168.100.116:8000/load_answers/", { question });
+      const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/load_answers/`, {
+        question,
+        uid,
+      });
       setAnswerNames(response.data.answer_names);
       console.log(response.data.answer_names);
     } catch (error) {
@@ -77,8 +84,9 @@ function Dropdown({ question, originalEntities }) {
 
   const handleAnswerNameChange = async (name) => {
     try {
-      const response = await axios.post("http://192.168.100.116:8000/retrieve_answer/", {
+      const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/retrieve_answer/`, {
         answer_name: name,
+        uid,
       });
       setDetailedAnswer(response.data.answer);
       setGraphRels(response.data.graph_rels);

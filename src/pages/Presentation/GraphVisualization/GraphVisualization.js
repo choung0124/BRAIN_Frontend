@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useMemo } from "react";
 import PropTypes from "prop-types";
-import DefaultNavbar from "../Navbar";
+import DefaultNavbar from "../SearchBar";
 import "./graphcontainer.css";
 import MyButton from "./GraphButtons";
 import MKButton from "components/MKButton";
