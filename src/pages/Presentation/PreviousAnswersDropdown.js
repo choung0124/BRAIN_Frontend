@@ -69,6 +69,21 @@ function PreviousAnswerDropdown({ question, originalEntities }) {
     }
   };
 
+  const prepareInGraphQA = async (name) => {
+    try {
+      const response = await axios.post(
+        `${process.env.REACT_APP_API_BASE_URL}/prepare_in_graph_qa/`,
+        {
+          answer_name: name,
+          uid,
+        }
+      );
+      console.log("Response from prepare in graph QA:", response.data);
+    } catch (error) {
+      console.error("Error preparing in graph QA:", error);
+    }
+  };
+
   const handleAnswerNameChange = async (name) => {
     try {
       const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/retrieve_answer/`, {
@@ -78,6 +93,7 @@ function PreviousAnswerDropdown({ question, originalEntities }) {
       setDetailedAnswer(response.data.answer);
       setGraphRels(response.data.graph_rels);
       setSelectedAnswerName(name); // Add this line
+      prepareInGraphQA(name);
     } catch (error) {
       console.error("Error retrieving answer:", error);
     }
@@ -147,6 +163,7 @@ function PreviousAnswerDropdown({ question, originalEntities }) {
                   <GraphContainer
                     relations={graphRels}
                     originalEntities={originalEntities}
+                    answerName={selectedAnswerName}
                     style={{ position: "relative", zIndex: 1 }} // Set SVG position and z-index
                   />
                 </div>
@@ -167,7 +184,7 @@ function PreviousAnswerDropdown({ question, originalEntities }) {
 
 PreviousAnswerDropdown.propTypes = {
   question: PropTypes.string.isRequired,
-  originalEntities: PropTypes.array.isRequired,
+  originalEntities: PropTypes.string.isRequired,
 };
 
 export default PreviousAnswerDropdown;

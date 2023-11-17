@@ -3,11 +3,21 @@ import PropTypes from "prop-types";
 import * as d3 from "d3";
 import ArrowRightAltIcon from "@mui/icons-material/ArrowRightAlt";
 
-const StaticGraph = ({ nodes, links, svgRef, setHoveredRelationship, nodeColors }) => {
+const StaticGraph = ({
+  nodes,
+  links,
+  svgRef,
+  setHoveredRelationship,
+  nodeColors,
+  nodesToHighlight,
+  linksToHighlight,
+}) => {
   // Dimensions
+  console.log("linksToHighlight", linksToHighlight);
   const container = svgRef.current.parentNode;
   const width = container.clientWidth;
   const height = container.clientHeight;
+  const highlightedNodeIds = nodesToHighlight.map((node) => node.id);
 
   // SVG container
   const svg = d3
@@ -105,7 +115,6 @@ const StaticGraph = ({ nodes, links, svgRef, setHoveredRelationship, nodeColors 
     .on("mouseout", () => {
       setHoveredRelationship(null);
     });
-
   // Nodes
   // Define your node group, binding the data to 'g' elements
   const node = g
@@ -121,8 +130,8 @@ const StaticGraph = ({ nodes, links, svgRef, setHoveredRelationship, nodeColors 
   node
     .append("circle")
     .attr("r", 5)
-    .attr("fill", (d) => nodeColors.get(d.id));
-
+    .attr("fill", (d) => nodeColors.get(d.id))
+    .attr("filter", (d) => (highlightedNodeIds.includes(d.id) ? "url(#drop-shadow)" : null));
   // Now, within the 'each' function, create and apply the filter to each circle
   node.each(function (d) {
     const color = nodeColors.get(d.id);

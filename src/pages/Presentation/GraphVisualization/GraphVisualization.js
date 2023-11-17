@@ -11,6 +11,16 @@ import { Container, Modal, Slide, IconButton } from "@mui/material";
 import MKBox from "components/MKBox";
 import CloseIcon from "@mui/icons-material/Close";
 import * as d3 from "d3";
+import MKInput from "components/MKInput";
+import InputAdornment from "@mui/material/InputAdornment";
+import MKTypography from "components/MKTypography";
+import parseRelationshipsWithoutColors from "./ParseRelationshipsWithout";
+
+// @mui icons
+import SearchIcon from "@mui/icons-material/Search";
+import axios from "axios";
+
+import { firebaseAuth } from "firebaseConfig";
 
 const GraphVisualization = ({
   relations,
@@ -26,12 +36,24 @@ const GraphVisualization = ({
   setHeight,
   zoomRef,
   setGlobalNodes,
+  fullGraph,
+  answerName,
 }) => {
   const svgRef = useRef(null);
   const [node, setNode] = useState(null);
   const [simulation, setSimulation] = useState(null);
   const [hoveredNode, setHoveredNode] = useState(null);
   const [hoveredRelationship, setHoveredRelationship] = useState(null);
+  const [quesiton, setQuestion] = useState(null);
+  const [inputValue, setInputValue] = useState("");
+  const [streamingResponseURL, setStreamingResponseURL] = useState(null);
+  const uid = firebaseAuth.currentUser.uid;
+  const [selectedAnswer, setSelectedAnswer] = useState(null);
+  const [answer, setAnswer] = useState(false);
+  const [relevantRels, setRelevantRels] = useState([]);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [nodesToHighlight, setNodesToHighlight] = useState([]);
+  const [linksToHighlight, setLinksToHighlight] = useState([]);
 
   const handleNodeHover = (nodeName) => {
     console.log("Hovered node:", nodeName);
@@ -51,6 +73,7 @@ const GraphVisualization = ({
   }));
 
   useEffect(() => {
+    console.log("Nodes to highlight:", nodesToHighlight);
     const result = StaticGraph({
       nodes,
       links,
@@ -59,6 +82,8 @@ const GraphVisualization = ({
       setHoveredRelationship,
       originalEntities,
       nodeColors,
+      nodesToHighlight,
+      linksToHighlight,
     });
 
     setNode(result.node);
@@ -69,7 +94,74 @@ const GraphVisualization = ({
     setSimulation(result.simulation);
 
     return () => result.simulation.stop();
-  }, [relations, svgRef, handleNodeZoom]); // Include handleNodeZoom in dependency array
+  }, [relations, svgRef, handleNodeZoom, nodesToHighlight, linksToHighlight]); // Include handleNodeZoom in dependency array
+
+  const inGraphQA = async (question) => {
+    try {
+      console.log("Selected answer:", selectedAnswer);
+      const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/in_graph_qa/`, {
+        question: question,
+        answer_name: selectedAnswer,
+        uid: uid,
+      });
+      setStreamingResponseURL(response.data.url);
+      setRelevantRels(response.data.graph_rels);
+      console.log("Response:", response);
+      const { nodes, links } = parseRelationshipsWithoutColors(response.data.graph_rels);
+      setNodesToHighlight(nodes);
+      setLinksToHighlight(links);
+    } catch (error) {
+      console.error("Error in in graph QA:", error);
+    }
+  };
+
+  const getStreamingResponse = async () => {
+    try {
+      // Assuming GET is the correct method for the streaming endpoint
+      const response = await fetch(streamingResponseURL);
+
+      // Check if the response body is readable stream
+      if (response.body) {
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let content = "";
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+
+          content += decoder.decode(value, { stream: true });
+          setAnswer(content); // Update state less frequently if possible
+        }
+        setAnswer((prev) => prev + decoder.decode()); // Final decoding
+      }
+    } catch (error) {
+      console.error("Error in streaming response:", error);
+    }
+  };
+
+  useEffect(() => {
+    const processQuestion = async () => {
+      if (quesiton && !isGenerating) {
+        setIsGenerating(true); // Start generating
+        setSelectedAnswer(answerName);
+        await inGraphQA(quesiton);
+        setIsGenerating(false); // Stop generating
+        console.log("rels:", relevantRels);
+      }
+    };
+    processQuestion();
+  }, [quesiton]);
+
+  useEffect(() => {
+    if (streamingResponseURL) {
+      getStreamingResponse();
+    }
+  }, [streamingResponseURL]);
+
+  useEffect(() => {
+    setSelectedAnswer(answerName);
+  }, [answerName]);
 
   return (
     <>
@@ -112,6 +204,42 @@ const GraphVisualization = ({
             onNodeHover={handleNodeHover}
             onNodeClick={onNodeClick}
           />
+        )}
+        {fullGraph && selectedAnswer && (
+          <div style={{ position: "absolute", top: 20, width: "100%", height: "300px" }}>
+            <MKBox>
+              <MKBox
+                display="flex"
+                style={{ width: "80%", margin: "0 auto" }}
+                justifyContent="center"
+              >
+                <MKInput
+                  variant="outlined"
+                  placeholder="Chat"
+                  value={inputValue} // <--- This ensures controlled component
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyPress={(event) => {
+                    if (event.key === "Enter") {
+                      setQuestion(inputValue);
+                    }
+                  }}
+                  fullWidth
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon fontSize="small" />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </MKBox>
+              <MKBox style={{ width: "80%", margin: "0 auto" }}>
+                <MKTypography variant="body2" textAlign="left" marginTop={2} px={2}>
+                  {answer}
+                </MKTypography>
+              </MKBox>
+            </MKBox>
+          </div>
         )}
         <div style={{ position: "absolute", bottom: 10, width: "100%", height: "100px" }}>
           {hoveredRelationship ? (
@@ -159,9 +287,11 @@ GraphVisualization.propTypes = {
   setHeight: PropTypes.func.isRequired,
   zoomRef: PropTypes.object.isRequired,
   setGlobalNodes: PropTypes.func.isRequired,
+  fullGraph: PropTypes.bool.isRequired,
+  answerName: PropTypes.string.isRequired,
 };
 
-const GraphContainer = ({ relations, originalEntities = [] }) => {
+const GraphContainer = ({ relations, originalEntities = [], answerName }) => {
   const [clickedNodes, setClickedNodes] = useState([]);
   const [nodeColors, setNodeColors] = useState(new Map());
   const [showModal, setShowModal] = useState(false);
@@ -170,6 +300,8 @@ const GraphContainer = ({ relations, originalEntities = [] }) => {
   const [height, setHeight] = useState(null);
   const zoomRef = useRef(null);
   const [globalNodes, setGlobalNodes] = useState(null);
+  const [fullGraph, setFullGraph] = useState(false);
+  const [selectedAnswerName, setSelectedAnswerName] = useState(null);
 
   const zoomToNode = (nodeName) => {
     const nodeData = globalNodes.find((node) => node.id === nodeName);
@@ -207,9 +339,19 @@ const GraphContainer = ({ relations, originalEntities = [] }) => {
     setShowModal(false);
   };
 
+  useEffect(() => {
+    if (showModal) {
+      setFullGraph(true);
+      setSelectedAnswerName(answerName);
+    } else {
+      setFullGraph(false);
+    }
+  }, [showModal]);
+
   return (
     <div>
       <GraphVisualization
+        fullGraph={fullGraph}
         relations={relations}
         clickedNodes={clickedNodes}
         onNodeClick={handleNodeClick}
@@ -222,6 +364,7 @@ const GraphContainer = ({ relations, originalEntities = [] }) => {
         setHeight={setHeight}
         zoomRef={zoomRef}
         setGlobalNodes={setGlobalNodes}
+        answerName={selectedAnswerName}
       />
       {showModal && (
         <MKBox component="section" py={6}>
@@ -258,6 +401,7 @@ const GraphContainer = ({ relations, originalEntities = [] }) => {
                     </IconButton>
                   </div>
                   <GraphVisualization
+                    fullGraph={fullGraph}
                     relations={relations}
                     clickedNodes={clickedNodes}
                     onNodeClick={handleNodeClick}
@@ -271,6 +415,7 @@ const GraphContainer = ({ relations, originalEntities = [] }) => {
                     setHeight={setHeight}
                     zoomRef={zoomRef}
                     setGlobalNodes={setGlobalNodes}
+                    answerName={selectedAnswerName}
                   />
                 </MKBox>
               </Slide>
@@ -285,6 +430,7 @@ const GraphContainer = ({ relations, originalEntities = [] }) => {
 GraphContainer.propTypes = {
   relations: PropTypes.array.isRequired,
   originalEntities: PropTypes.array.isRequired,
+  answerName: PropTypes.string.isRequired,
 };
 
 export default GraphContainer;
