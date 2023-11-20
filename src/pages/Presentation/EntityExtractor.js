@@ -436,7 +436,7 @@ function EntityExtractor({ initialQuestion }) {
         {isExtractingEntities ? (
           <Container>
             <Grid container item xs={12} lg={4} py={1} justifyContent="center" mx="auto">
-              <MKTypography variant="h4" color="cyan" mr={2}>
+              <MKTypography variant="h4" mr={2}>
                 Processing Question
               </MKTypography>
               <CircularProgress />
@@ -491,7 +491,7 @@ function EntityExtractor({ initialQuestion }) {
         {isGraphQARunning && !finalAnswer && (
           <Container>
             <Grid container item xs={12} lg={4} py={1} justifyContent="center" mx="auto">
-              <MKTypography variant="h4" color="cyan" mr={2}>
+              <MKTypography variant="h4" mr={2}>
                 Running GraphQA
               </MKTypography>
               <CircularProgress />

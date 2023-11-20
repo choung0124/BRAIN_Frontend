@@ -44,8 +44,9 @@ const entityTypeDropDownItems = [
   "Units",
 ];
 
-function EntityTypeDropDown({ setCurrentEntityType }) {
+function EntityTypeDropDown({ setCurrentEntityType, currentEntityType }) {
   const [dropdown, setDropdown] = useState(null);
+  const [selectedEntityType, setSelectedEntityType] = useState("Select the Entity type");
   const openDropdown = ({ currentTarget }) => setDropdown(currentTarget);
   const closeDropdown = () => setDropdown(null);
 
@@ -65,10 +66,17 @@ function EntityTypeDropDown({ setCurrentEntityType }) {
       <MKButton
         variant="gradient"
         color="info"
-        onClick={openDropdown}
+        onClick={
+          currentEntityType && currentEntityType !== "start_node"
+            ? () => setCurrentEntityType(null)
+            : openDropdown
+        }
         sx={{ width: "100%", flexGrow: 1 }}
       >
-        Select the Entity type <Icon sx={dropdownIconStyles}>expand_more</Icon>
+        {selectedEntityType}{" "}
+        <Icon sx={dropdownIconStyles}>
+          {currentEntityType && currentEntityType !== "start_node" ? "close" : "expand_more"}
+        </Icon>
       </MKButton>
       <Menu anchorEl={dropdown} open={Boolean(dropdown)} onClose={closeDropdown}>
         {entityTypeDropDownItems.map((entityType) => (
@@ -76,6 +84,8 @@ function EntityTypeDropDown({ setCurrentEntityType }) {
             key={entityType}
             onClick={() => {
               setCurrentEntityType(entityType);
+              setSelectedEntityType(entityType);
+              console.log(entityType);
               closeDropdown();
             }}
           >
@@ -89,6 +99,7 @@ function EntityTypeDropDown({ setCurrentEntityType }) {
 
 EntityTypeDropDown.propTypes = {
   setCurrentEntityType: PropTypes.func.isRequired,
+  currentEntityType: PropTypes.string,
 };
 
 const InputModal = React.forwardRef(
@@ -267,7 +278,10 @@ const InputModal = React.forwardRef(
                   Add
                 </MKButton>
               </MKBox>
-              <EntityTypeDropDown setCurrentEntityType={setUpdatedEntityType} />
+              <EntityTypeDropDown
+                setCurrentEntityType={setUpdatedEntityType}
+                currentEntityType={currentEntityType}
+              />
             </MKBox>
             <Divider sx={{ my: 0 }} />
             {Object.entries(constituentsDict).map(
@@ -362,6 +376,5 @@ InputModal.propTypes = {
   runGraphQA: PropTypes.func.isRequired,
   setEntityConstituents: PropTypes.func.isRequired,
   entity: PropTypes.string.isRequired,
-  setCurrentEntityType: PropTypes.func.isRequired,
   updateEntities: PropTypes.func.isRequired,
 };

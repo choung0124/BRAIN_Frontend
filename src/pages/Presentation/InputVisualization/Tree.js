@@ -256,7 +256,6 @@ function ForceDirectedTree({ graphData, onNodeClick }) {
 
 ForceDirectedTree.propTypes = {
   graphData: PropTypes.object.isRequired,
-  updateGraph: PropTypes.func.isRequired,
   onNodeClick: PropTypes.func.isRequired,
 };
 
