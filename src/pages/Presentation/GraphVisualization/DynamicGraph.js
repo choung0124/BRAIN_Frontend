@@ -3,33 +3,35 @@ import PropTypes from "prop-types";
 import * as d3 from "d3";
 import { useEffect, useState } from "react";
 
-const DynamicGraph = ({ node, simulation, onNodeHover, onNodeClick }) => {
+const DynamicGraph = ({ nodeGroup, simulation, onNodeHover, onNodeClick }) => {
   const [shadowedNodes, setShadowedNodes] = useState(new Set());
 
   useEffect(() => {
     // Drag behavior
-    node.call(d3.drag().on("start", dragstarted).on("drag", dragged).on("end", dragended));
+    const nodes = nodeGroup.selectAll("circle.node");
 
-    node
+    nodes.call(d3.drag().on("start", dragstarted).on("drag", dragged).on("end", dragended));
+
+    nodes
       .on("mouseover", (event, d) => {
-        d3.select(event.currentTarget).attr("filter", "url(#drop-shadow)");
+        d3.select(event.target).attr("filter", "url(#drop-shadow)");
         if (onNodeHover) {
           onNodeHover(d.id);
         }
       })
       .on("mouseout", (event, d) => {
         if (!shadowedNodes.has(d.id)) {
-          d3.select(event.currentTarget).attr("filter", null);
+          d3.select(event.target).attr("filter", null);
         }
       })
       .on("click", (event, d) => {
         const newShadowedNodes = new Set(shadowedNodes);
         if (newShadowedNodes.has(d.id)) {
           newShadowedNodes.delete(d.id);
-          d3.select(event.currentTarget).attr("filter", null);
+          d3.select(event.target).attr("filter", null);
         } else {
           newShadowedNodes.add(d.id);
-          d3.select(event.currentTarget).attr("filter", "url(#drop-shadow)");
+          d3.select(event.target).attr("filter", "url(#drop-shadow)");
         }
         setShadowedNodes(newShadowedNodes);
         if (onNodeClick) {
@@ -42,19 +44,22 @@ const DynamicGraph = ({ node, simulation, onNodeHover, onNodeClick }) => {
       if (!event.active) simulation.alphaTarget(0.3).restart();
       event.subject.fx = event.subject.x;
       event.subject.fy = event.subject.y;
+      console.log("dragstarted");
     }
 
     function dragged(event) {
       event.subject.fx = event.x;
       event.subject.fy = event.y;
+      console.log("dragged");
     }
 
     function dragended(event) {
       if (!event.active) simulation.alphaTarget(0);
       event.subject.fx = null;
       event.subject.fy = null;
+      console.log("dragended");
     }
-  }, [node, simulation, onNodeHover, onNodeClick, shadowedNodes]);
+  }, [nodeGroup, simulation, onNodeHover, onNodeClick, shadowedNodes]);
 };
 
 DynamicGraph.propTypes = {

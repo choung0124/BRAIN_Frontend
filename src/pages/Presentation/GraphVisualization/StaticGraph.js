@@ -30,58 +30,6 @@ const StaticGraph = ({
   // Clear the SVG container
   svg.selectAll("*").remove();
 
-  // Inside your StaticGraph function
-  const defs = svg.append("defs");
-
-  const filter = defs
-    .append("filter")
-    .attr("id", "drop-shadow")
-    .attr("x", "-50%")
-    .attr("y", "-50%")
-    .attr("width", "200%")
-    .attr("height", "200%");
-
-  filter
-    .append("feGaussianBlur")
-    .attr("in", "SourceAlpha")
-    .attr("stdDeviation", 14) // Adjust this value to control the fuzziness
-    .attr("result", "blur");
-
-  // Replace feOffset with feComponentTransfer to adjust the alpha values
-  filter.append("feComponentTransfer").append("feFuncA").attr("type", "linear").attr("slope", 0.2); // Adjust this value to control the gradient
-
-  filter
-    .append("feOffset")
-    .attr("in", "blur")
-    .attr("dx", 0)
-    .attr("dy", 0)
-    .attr("result", "offsetBlur");
-
-  filter
-    .append("feFlood")
-    .attr("flood-color", "black") // Placeholder color, will be set per node
-    .attr("result", "color");
-
-  filter
-    .append("feComposite")
-    .attr("in", "color")
-    .attr("in2", "offsetBlur")
-    .attr("operator", "in")
-    .attr("result", "shadow");
-
-  filter
-    .append("feMerge")
-    .selectAll("feMergeNode")
-    .data(["shadow", "SourceGraphic"])
-    .enter()
-    .append("feMergeNode")
-    .attr("in", (d) => d);
-
-  const feMerge = filter.append("feMerge");
-
-  feMerge.append("feMergeNode").attr("in", "offsetBlur");
-  feMerge.append("feMergeNode").attr("in", "SourceGraphic");
-
   // Create a group for the visualization
   const g = svg.append("g");
 
@@ -96,86 +44,81 @@ const StaticGraph = ({
   // Apply the zoom behavior to the svg element
   svg.call(zoom);
 
+  function isLinkHighlighted(link) {
+    if (!link || !link.source || !link.target || !link.source.id || !link.target.id) {
+      return false;
+    }
+    return linksToHighlight.some(
+      (highlightedLink) =>
+        highlightedLink.source.id === link.source.id && highlightedLink.target.id === link.target.id
+    );
+  }
   // Links
   const link = g
     .append("g")
-    .attr("stroke", "#999")
+    .attr("stroke", (d) => (isLinkHighlighted(d) ? "#9bedff" : "#999"))
     .attr("stroke-opacity", 0.6)
     .selectAll()
     .data(links)
     .join("line")
-    .attr("stroke-width", (d) => Math.sqrt(d.value))
+    .attr("stroke-width", (d) => (isLinkHighlighted(d) ? 3 : 1))
     .on("mouseover", (event, d) => {
       setHoveredRelationship(
         <>
           {d.source.id} <ArrowRightAltIcon /> {d.relation} <ArrowRightAltIcon /> {d.target.id}
         </>
       );
-    })
-    .on("mouseout", () => {
-      setHoveredRelationship(null);
     });
-  // Nodes
-  // Define your node group, binding the data to 'g' elements
-  const node = g
-    .append("g")
-    .attr("stroke", "#fff")
-    .attr("stroke-width", 1.5)
-    .selectAll("g")
-    .data(nodes)
-    .enter()
-    .append("g");
 
-  // Now append circles to each group
-  node
+  const nodeGroup = g.append("g").selectAll("g").data(nodes).enter().append("g");
+
+  nodeGroup
     .append("circle")
+    .attr("class", "node")
     .attr("r", 5)
     .attr("fill", (d) => nodeColors.get(d.id))
-    .attr("filter", (d) => (highlightedNodeIds.includes(d.id) ? "url(#drop-shadow)" : null));
-  // Now, within the 'each' function, create and apply the filter to each circle
-  node.each(function (d) {
-    const color = nodeColors.get(d.id);
-    const filterId = `drop-shadow-${d.id}`;
-    const filter = defs
-      .append("filter")
-      .attr("id", filterId)
-      .attr("x", "-50%")
-      .attr("y", "-50%")
-      .attr("width", "200%")
-      .attr("height", "200%");
+    .attr("stroke", "#fff")
+    .attr("stroke-width", 1.5);
 
-    filter
-      .append("feGaussianBlur")
-      .attr("in", "SourceAlpha")
-      .attr("stdDeviation", 3)
-      .attr("result", "blur");
+  nodeGroup
+    .append("circle")
+    .attr("class", "node-highlight")
+    .attr("r", 8)
+    .attr("fill", (d) => nodeColors.get(d.id))
+    .attr("opacity", 0.5)
+    .attr("visibility", (d) => (highlightedNodeIds.includes(d.id) ? "visible" : "hidden"));
 
-    filter
-      .append("feOffset")
-      .attr("in", "blur")
-      .attr("dx", 0)
-      .attr("dy", 0)
-      .attr("result", "offsetBlur");
+  nodeGroup
+    .append("text")
+    .attr("class", "node-label")
+    .style("fill", "#000")
+    .style("font-size", "0.2em")
+    .text((d) => d.id)
+    .attr("x", (d) => d.x + 10)
+    .attr("y", (d) => d.y + 5)
+    .style("pointer-events", "none");
 
-    filter.append("feFlood").attr("flood-color", color).attr("result", "color");
+  function dragstarted(event) {
+    if (!event.active) simulation.alphaTarget(0.3).restart();
+    event.subject.fx = event.subject.x;
+    event.subject.fy = event.subject.y;
+  }
 
-    filter
-      .append("feComposite")
-      .attr("in", "color")
-      .attr("in2", "offsetBlur")
-      .attr("operator", "in")
-      .attr("result", "shadow");
+  function dragged(event) {
+    event.subject.fx = event.x;
+    event.subject.fy = event.y;
+  }
 
-    filter
-      .append("feMerge")
-      .selectAll("feMergeNode")
-      .data(["shadow", "SourceGraphic"])
-      .enter()
-      .append("feMergeNode")
-      .attr("in", (d) => d);
-  });
+  function dragended(event) {
+    if (!event.active) simulation.alphaTarget(0);
+    event.subject.fx = null;
+    event.subject.fy = null;
+  }
 
-  // Simulation
+  const drag = d3.drag().on("start", dragstarted).on("drag", dragged).on("end", dragended);
+
+  nodeGroup.call(drag);
+
   const simulation = d3
     .forceSimulation(nodes)
     .force(
@@ -186,8 +129,6 @@ const StaticGraph = ({
     .force("center", d3.forceCenter(width / 2, height / 2))
     .on("tick", ticked);
 
-  node.append("title").text((d) => d.id);
-  // Ticked function
   // Ticked function
   function ticked() {
     link
@@ -196,10 +137,18 @@ const StaticGraph = ({
       .attr("x2", (d) => d.target.x)
       .attr("y2", (d) => d.target.y);
 
-    node.attr("transform", (d) => `translate(${d.x}, ${d.y})`);
+    nodeGroup
+      .selectAll("circle")
+      .attr("cx", (d) => d.x)
+      .attr("cy", (d) => d.y);
+
+    nodeGroup
+      .selectAll("text")
+      .attr("x", (d) => d.x + 10)
+      .attr("y", (d) => d.y + 5);
   }
 
-  return { node, simulation, svg, width, height, zoom };
+  return { nodeGroup, simulation, svg, width, height, zoom };
 };
 
 StaticGraph.propTypes = {
