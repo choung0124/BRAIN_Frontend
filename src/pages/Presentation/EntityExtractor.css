@@ -1,0 +1,27 @@
+.block {
+	position: relative;
+	margin: auto 0;
+	width: 120vh;
+	height: 60vh;
+	background: linear-gradient(0deg, #fff, #fff);
+    margin-top: 15vh;
+}
+
+.block:before, .block:after {
+	content: '';
+	position: absolute;
+	left: 0px;
+	top: 0px;
+    bottom: 0px;
+    right: 0px;
+	background: linear-gradient(45deg, #ba8a8c, #ba8a8c);
+	background-size: 400%;
+	width: calc(100%);
+	height: calc(100%);
+	z-index: -1;
+	animation: steam 20s linear infinite;
+}
+
+.block:after {
+	filter: blur(50px);
+}
