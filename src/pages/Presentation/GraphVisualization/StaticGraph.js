@@ -44,24 +44,30 @@ const StaticGraph = ({
   // Apply the zoom behavior to the svg element
   svg.call(zoom);
 
+  function isLinkHighlighted(link) {
+    if (!link || !link.source || !link.target || !link.source.id || !link.target.id) {
+      return false;
+    }
+    return linksToHighlight.some(
+      (highlightedLink) =>
+        highlightedLink.source.id === link.source.id && highlightedLink.target.id === link.target.id
+    );
+  }
   // Links
   const link = g
     .append("g")
-    .attr("stroke", "#999")
+    .attr("stroke", (d) => (isLinkHighlighted(d) ? "#9bedff" : "#999"))
     .attr("stroke-opacity", 0.6)
     .selectAll()
     .data(links)
     .join("line")
-    .attr("stroke-width", (d) => Math.sqrt(d.value))
+    .attr("stroke-width", (d) => (isLinkHighlighted(d) ? 3 : 1))
     .on("mouseover", (event, d) => {
       setHoveredRelationship(
         <>
           {d.source.id} <ArrowRightAltIcon /> {d.relation} <ArrowRightAltIcon /> {d.target.id}
         </>
       );
-    })
-    .on("mouseout", () => {
-      setHoveredRelationship(null);
     });
 
   const nodeGroup = g.append("g").selectAll("g").data(nodes).enter().append("g");
@@ -82,6 +88,37 @@ const StaticGraph = ({
     .attr("opacity", 0.5)
     .attr("visibility", (d) => (highlightedNodeIds.includes(d.id) ? "visible" : "hidden"));
 
+  nodeGroup
+    .append("text")
+    .attr("class", "node-label")
+    .style("fill", "#000")
+    .style("font-size", "0.2em")
+    .text((d) => d.id)
+    .attr("x", (d) => d.x + 10)
+    .attr("y", (d) => d.y + 5)
+    .style("pointer-events", "none");
+
+  function dragstarted(event) {
+    if (!event.active) simulation.alphaTarget(0.3).restart();
+    event.subject.fx = event.subject.x;
+    event.subject.fy = event.subject.y;
+  }
+
+  function dragged(event) {
+    event.subject.fx = event.x;
+    event.subject.fy = event.y;
+  }
+
+  function dragended(event) {
+    if (!event.active) simulation.alphaTarget(0);
+    event.subject.fx = null;
+    event.subject.fy = null;
+  }
+
+  const drag = d3.drag().on("start", dragstarted).on("drag", dragged).on("end", dragended);
+
+  nodeGroup.call(drag);
+
   const simulation = d3
     .forceSimulation(nodes)
     .force(
@@ -92,7 +129,6 @@ const StaticGraph = ({
     .force("center", d3.forceCenter(width / 2, height / 2))
     .on("tick", ticked);
 
-  nodeGroup.append("title").text((d) => d.id);
   // Ticked function
   function ticked() {
     link
@@ -101,7 +137,15 @@ const StaticGraph = ({
       .attr("x2", (d) => d.target.x)
       .attr("y2", (d) => d.target.y);
 
-    nodeGroup.attr("transform", (d) => `translate(${d.x}, ${d.y})`);
+    nodeGroup
+      .selectAll("circle")
+      .attr("cx", (d) => d.x)
+      .attr("cy", (d) => d.y);
+
+    nodeGroup
+      .selectAll("text")
+      .attr("x", (d) => d.x + 10)
+      .attr("y", (d) => d.y + 5);
   }
 
   return { nodeGroup, simulation, svg, width, height, zoom };

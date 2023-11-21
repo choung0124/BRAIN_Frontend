@@ -6,7 +6,6 @@ import MyButton from "./GraphButtons";
 import MKButton from "components/MKButton";
 import parseRelationships from "./ParseRelationships";
 import StaticGraph from "./StaticGraph";
-import DynamicGraph from "./DynamicGraph";
 import { Container, Modal, Slide, IconButton } from "@mui/material";
 import MKBox from "components/MKBox";
 import CloseIcon from "@mui/icons-material/Close";
@@ -198,11 +197,17 @@ const GraphVisualization = ({
         )}
         <svg ref={svgRef}></svg>
         {node && simulation && (
-          <DynamicGraph
-            node={node}
-            simulation={simulation}
-            onNodeHover={handleNodeHover}
-            onNodeClick={onNodeClick}
+          <StaticGraph
+            nodes={nodes}
+            links={links}
+            svgRef={svgRef}
+            clickedNodes={clickedNodes}
+            setHoveredRelationship={setHoveredRelationship}
+            originalEntities={originalEntities}
+            nodeColors={nodeColors}
+            nodesToHighlight={nodesToHighlight}
+            linksToHighlight={linksToHighlight}
+            handleNodeHover={handleNodeHover}
           />
         )}
         {fullGraph && selectedAnswer && (

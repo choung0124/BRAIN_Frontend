@@ -8,28 +8,30 @@ const DynamicGraph = ({ nodeGroup, simulation, onNodeHover, onNodeClick }) => {
 
   useEffect(() => {
     // Drag behavior
-    nodeGroup.call(d3.drag().on("start", dragstarted).on("drag", dragged).on("end", dragended));
+    const nodes = nodeGroup.selectAll("circle.node");
 
-    nodeGroup
+    nodes.call(d3.drag().on("start", dragstarted).on("drag", dragged).on("end", dragended));
+
+    nodes
       .on("mouseover", (event, d) => {
-        d3.select(event.currentTarget).attr("filter", "url(#drop-shadow)");
+        d3.select(event.target).attr("filter", "url(#drop-shadow)");
         if (onNodeHover) {
           onNodeHover(d.id);
         }
       })
       .on("mouseout", (event, d) => {
         if (!shadowedNodes.has(d.id)) {
-          d3.select(event.currentTarget).attr("filter", null);
+          d3.select(event.target).attr("filter", null);
         }
       })
       .on("click", (event, d) => {
         const newShadowedNodes = new Set(shadowedNodes);
         if (newShadowedNodes.has(d.id)) {
           newShadowedNodes.delete(d.id);
-          d3.select(event.currentTarget).attr("filter", null);
+          d3.select(event.target).attr("filter", null);
         } else {
           newShadowedNodes.add(d.id);
-          d3.select(event.currentTarget).attr("filter", "url(#drop-shadow)");
+          d3.select(event.target).attr("filter", "url(#drop-shadow)");
         }
         setShadowedNodes(newShadowedNodes);
         if (onNodeClick) {
